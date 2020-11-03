@@ -67,16 +67,16 @@ function Counter() {
         onChange={handleStepChange}
       >
         <NumberInputField />
-        <NumberInputStepper>
-          <NumberIncrementStepper />
-          <NumberDecrementStepper />
+        <NumberInputStepper >
+          <NumberIncrementStepper bg="blue.400"/>
+          <NumberDecrementStepper bg="blue.400"/>
         </NumberInputStepper>
       </NumberInput>
       <HStack>
-        <Button onClick={() => handleIncrement(step)}>increment</Button>
-        <Button onClick={() => handleDecrement(step)}>decrement</Button>
+        <Button colorScheme="blue" onClick={() => handleIncrement(step)}>increment</Button>
+        <Button colorScheme="blue" onClick={() => handleDecrement(step)}>decrement</Button>
       </HStack>
-      <Button onClick={handleReset}>reset</Button>
+      <Button colorScheme="blue" onClick={handleReset}>reset</Button>
     </VStack>
   )
 }

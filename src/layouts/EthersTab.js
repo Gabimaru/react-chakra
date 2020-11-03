@@ -49,7 +49,7 @@ function EthersTab() {
   return (
     <>
       <Center>
-      <Heading color="purple.700">Web3 with ethers.js</Heading>
+      <Heading mb={50} color="purple.700">Web3 with ethers.js</Heading>
       </Center>
       <Text>Metamask status: {isEnable ? 'connected' : 'disconnect'}</Text>
       {network !== null && (

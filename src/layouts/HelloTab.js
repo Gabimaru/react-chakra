@@ -8,7 +8,7 @@ function HelloTab() {
   return (
     <>
       <VStack spacing={10}>
-        <Heading mb={50} color="purple.700">Welcome to my first React + Chakra UI course</Heading>
+        <Heading mb={50} color="purple.700">Welcome to basic React + Chakra UI Tutorial</Heading>
         <Stack direction="row" align="center" spacing={20}>
           <Image src={reactImage} boxSize="200px" />
           <Text fontSize={100}>+</Text>
@@ -16,8 +16,8 @@ function HelloTab() {
           <Text fontSize={100}> =</Text>
           <Image src={resultImage} boxSize="200px" />
         </Stack>
-        <Text>We can create text easily with chakra</Text>
-        <Text fontSize="3xl">Change font size</Text>
+        <Text color="blue.400">We can create text easily with chakra</Text>
+        <Text fontSize="3xl" color="blue.400">Change font size</Text>
         <Text as="i" fontSize="5xl" color="purple.700">
           And change color too
         </Text>

@@ -1,32 +1,59 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useReducer} from 'react'
 import axios from 'axios'
-import { Heading, Center } from '@chakra-ui/core'
+import { Heading, Center, Input, Button, VStack, HStack } from '@chakra-ui/core'
+
+const dataFetchReducer = (state, action) => {
+  switch (action.type) {
+    case 'FETCH_INIT':
+      return { ...state, isLoading: true,
+        isError: false };
+    case 'FETCH_SUCCESS':
+      return { ...state, isLoading: false,
+        isError: false,
+        data: action.payload };
+    case 'FETCH_FAILURE':
+      return { ...state, isLoading: false,
+        isError: true };
+    default:
+      throw new Error();
+  }
+};
 
 const useDataApi = (initialUrl, initialData) => {
-  const [data, setData] = useState(initialData);
-  const [url, setUrl] = useState(initialUrl);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+    const [url, setUrl] = useState(initialUrl);
+
+    const [state, dispatch] = useReducer(dataFetchReducer, {
+      isLoading: false,
+      isError: false,
+      data: initialData,
+    });
 
   useEffect(() => {
+    let didCancel = false;
+
     const fetchData = async () => {
-      setIsError(false);
-      setIsLoading(true);
+      dispatch({ type: 'FETCH_INIT' });
 
       try {
       const result = await axios(url);
- 
-      setData(result.data);
+
+      if (!didCancel) {
+      dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
+      }
     } catch (error) {
-      setIsError(true);
+      if (!didCancel) {
+      dispatch({ type: 'FETCH_FAILURE' });
+      }
     }
-      setIsLoading(false);
     };
  
     fetchData();
+    return () => {
+      didCancel = true;
+    };
   }, [url]);
 
-  return [{ data, isLoading, isError }, setUrl];
+  return [state, setUrl];
 }
 
 function FetchTab() {
@@ -38,21 +65,24 @@ function FetchTab() {
   );
 
   return (
-    <>
+    <VStack>
     <Center>
-    <Heading color="purple.700">Fetch content with useEffect hook</Heading>
+    <Heading mb={50} color="purple.700">Fetch content with useEffect hook</Heading>
     </Center>
     <form onSubmit={event => {
         doFetch(`http://hn.algolia.com/api/v1/search?query=${query}`);
  
         event.preventDefault();
       }}>
-    <input
+        <HStack>
+    <Input
         type="text"
+        mb={25}
         value={query}
         onChange={event => setQuery(event.target.value)}
       />
-              <button type="submit">Search</button>
+              <Button mb={25} colorScheme="blue" type="submit">Search</Button>
+              </HStack>
       </form>
 
       {isError && <div>Something went wrong ...</div>}
@@ -67,11 +97,16 @@ function FetchTab() {
       </li>
     ))}
     </ul>
+    
     )}
-    </>
+    </VStack>
     );
 }
 
 export default FetchTab
 
-// A poursuivre à partir de "Reducer Hook for Data Fetching"
+    /*
+    const [data, setData] = useState(initialData);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isError, setIsError] = useState(false);
+    */
