@@ -1,64 +1,104 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import { Heading, Text, Center } from '@chakra-ui/core'
 import { ethers } from 'ethers'
 
-function EthersTab() {
-  const [isEtherem, setIsEtherem] = useState(false)
-  const [isEnable, setIsEnable] = useState(false)
-  const [account, setAccount] = useState('0x0')
-  const [network, setNetwork] = useState(null)
-  const [balance, setBalance] = useState(0)
+const web3Reducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_isWeb3':
+      return { ...state, isWeb3: action.isWeb3 }
+    case 'SET_enabled':
+      return { ...state, isEnabled: action.isEnabled }
+    case 'SET_account':
+      return { ...state, account: action.account }
+    case 'SET_provider':
+      return { ...state, provider: action.provider }
+    case 'SET_network':
+      return { ...state, network: action.network }
+    default:
+      throw new Error(`Unhandled action ${action.type} in web3Reducer`)
+  }
+}
 
-  // check if ethereum is injected
+const initialWeb3State = {
+  isWeb3: false,
+  isEnabled: false,
+  account: ethers.constants.AddressZero,
+  provider: null,
+  network: null,
+}
+
+function EthersTab() {
+  const [state, dispatch] = useReducer(web3Reducer, initialWeb3State)
+
+  //Check if Web3 is injected
   useEffect(() => {
-    console.log('Call detect web3')
     if (typeof window.ethereum !== 'undefined') {
-      setIsEtherem(true)
-    } else setIsEtherem(false)
+      dispatch({ type: 'SET_isWeb3', isWeb3: true })
+    } else {
+      dispatch({ type: 'SET_isWeb3', isWeb3: false })
+    }
   }, [])
 
-  // connect metamask to app
+  // Colors of Status
+  const status = (x,y) => {
+    return <Text color={x}>{y}</Text>
+  }
+
+  const coloredGreen = "green.400"
+  const coloredRed = "red.400"
+
+  const connected = "connected"
+  const disconnected = "disconnected"
+  const injected = "injected"
+  const notFound = "not found"
+  
+
+  //Check if Metamask is Enabled and get account
   useEffect(() => {
-    ;(async () => {
-      console.log('Call enable')
+    const connect2MetaMask = async () => {
       try {
         const accounts = await window.ethereum.request({
           method: 'eth_requestAccounts',
         })
-        const account = accounts[0]
-        setIsEnable(true)
-        setAccount(account)
+        dispatch({ type: 'SET_enabled', isEnabled: true })
+        dispatch({ type: 'SET_account', account: accounts[0] })
       } catch (e) {
-        setIsEnable(false)
+        console.log('Error:', e)
+        dispatch({ type: 'SET_enabled', isEnabled: false })
       }
-    })()
-  }, [isEtherem])
+    }
+    if (state.isWeb3) {
+      connect2MetaMask()
+    }
+  }, [state.isWeb3])
 
+  // Connect to provider
   useEffect(() => {
-    console.log('call1')
-    ;(async () => {
+    const connect2Provider = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
+      dispatch({ type: 'SET_provider', provider: provider })
       const network = await provider.getNetwork()
-      const _balance = await provider.getBalance(account)
-      const balance = ethers.utils.formatEther(_balance)
-      setNetwork(network)
-      setBalance(balance)
-    })()
-  }, [isEnable, account])
+      dispatch({ type: 'SET_network', network: network })
+    }
+
+    if (state.isEnabled) {
+      connect2Provider()
+    }
+  }, [state.isEnabled])
 
   return (
     <>
       <Center>
       <Heading mb={50} color="purple.700">Web3 with ethers.js</Heading>
       </Center>
-      <Text>Metamask status: {isEnable ? 'connected' : 'disconnect'}</Text>
-      {network !== null && (
-        <>
-          <Text>Account: {account}</Text>
-          <Text>Network name: {network.name}</Text>
-          <Text>Network id: {network.chainId}</Text>
-          <Text>Balance: {balance}</Text>
-        </>
+      <Text mb="5" fontWeight="bold" color="blue.400">Web3 : {state.isWeb3 ? status(coloredGreen,injected) : status(coloredRed,notFound)}</Text>
+      <Text mb="5" fontWeight="bold" color="blue.400">Metamask status : {state.isEnabled ? status(coloredGreen,connected) : status(coloredRed,disconnected)}</Text>
+      {state.isEnabled && <Text mb="5" fontWeight="bold" color="blue.400">account: <Text color="green.400">{state.account}</Text></Text>}
+        {state.network && (
+          <>
+            <Text mb="5" fontWeight="bold" color="blue.400">Network name : <Text color="green.400">{state.network.name}</Text></Text>
+            <Text mb="5" fontWeight="bold" color="blue.400">Network id : <Text color="green.400">{state.network.chainId}</Text></Text>
+          </>
       )}
     </>
   )
